@@ -26,7 +26,10 @@ for k = 1 : length(mFiles)
     sz = size(mask);
     image = imread(filepath);
     bw = bwlabel(mask(:,:,1), 8);
-    
+    subplot(1,2,1)
+    imshow(image);
+    subplot(1,2,2)
+    imshow(mask);
     region_count = max(max(bw));
     bb = regionprops(bw, 'BoundingBox');
     bb = [bb.BoundingBox];
