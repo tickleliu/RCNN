@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import skimage.io
+import config
 import skimage.feature
 import skimage.color
 import skimage.transform
@@ -328,43 +329,49 @@ def selective_search(
 
     return img, regions
 if __name__ == "__main__":
-    image_path = 'fine_tune/1/0.bmp';
-    rect_ori = [148, 60, 148 + 122, 60 + 96, 122, 96];
-    scale = 10
-    min_size = 50
-    im_orig = skimage.io.imread(image_path)
-    im_mask = skimage.segmentation.felzenszwalb(
-        skimage.util.img_as_float(im_orig), scale=scale, sigma=0.8,
-        min_size=min_size)
-    sz = im_mask.shape
-    im_patch = numpy.zeros((sz[0], sz[1], 3))
-    iter_count = numpy.max(im_mask)
-    colors = numpy.zeros((iter_count + 1, 3))
-    for i in range(iter_count + 1):
-        colors[i, 0] = numpy.random.randint(0, 255)
-        colors[i, 1] = numpy.random.randint(0, 255)
-        colors[i, 2] = numpy.random.randint(0, 255)
-     
-    for i in range(sz[0]):
-        for j in range(sz[1]):
-            im_patch[i, j, 0] = colors[im_mask[i, j], 0]
-            im_patch[i, j, 1] = colors[im_mask[i, j], 1]
-            im_patch[i, j, 2] = colors[im_mask[i, j], 2]
-    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(6, 6))
-    ax[0].imshow(im_patch)
-    img, regions = selective_search(im_orig, scale=scale, sigma=0.8, min_size=min_size)
-    ax[1].imshow(im_orig)
-    print(len(regions))
-    for item in regions:
-        x, y, w, h = item['rect']
-        r = IOU(item['rect'], rect_ori)
-        if r != False and r > 0.4:
-            rect = mpatches.Rectangle(
-                (x, y), w, h, fill=False, edgecolor='red', linewidth=1)
-            ax[1].add_patch(rect)
-             
-    rect = mpatches.Rectangle(
-                (rect_ori[0], rect_ori[1]), rect_ori[4], rect_ori[5], fill=False, edgecolor='green', linewidth=1)
-    ax[1].add_patch(rect)
-    plt.savefig("1.jpg")
-    plt.show()
+    fr = open(config.FINE_TUNE_LIST, 'r')
+    train_list = fr.readlines()
+    # random.shuffle(train_list)
+    for num, line in enumerate(train_list):
+        tmp = line.strip().split(' ')
+        image_path = tmp[0];
+        x,y,w,h = map(int, tmp[2].split(','))
+        rect_ori = [x, y, x+ w, y + h, w, h];
+        scale = 10
+        min_size = 50
+        im_orig = skimage.io.imread(image_path)
+        im_mask = skimage.segmentation.felzenszwalb(
+            skimage.util.img_as_float(im_orig), scale=scale, sigma=0.8,
+            min_size=min_size)
+        sz = im_mask.shape
+        im_patch = numpy.zeros((sz[0], sz[1], 3))
+        iter_count = numpy.max(im_mask)
+        colors = numpy.zeros((iter_count + 1, 3))
+        for i in range(iter_count + 1):
+            colors[i, 0] = numpy.random.randint(0, 255)
+            colors[i, 1] = numpy.random.randint(0, 255)
+            colors[i, 2] = numpy.random.randint(0, 255)
+         
+        for i in range(sz[0]):
+            for j in range(sz[1]):
+                im_patch[i, j, 0] = colors[im_mask[i, j], 0]
+                im_patch[i, j, 1] = colors[im_mask[i, j], 1]
+                im_patch[i, j, 2] = colors[im_mask[i, j], 2]
+        fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(6, 6))
+        ax[0].imshow(im_patch)
+        img, regions = selective_search(im_orig, scale=scale, sigma=0.8, min_size=min_size)
+        ax[1].imshow(im_orig)
+        print(len(regions))
+        for item in regions:
+            x, y, w, h = item['rect']
+            r = IOU(item['rect'], rect_ori)
+            if r != False and r > 0.4:
+                rect = mpatches.Rectangle(
+                    (x, y), w, h, fill=False, edgecolor='red', linewidth=1)
+                ax[1].add_patch(rect)
+                 
+        rect = mpatches.Rectangle(
+                    (rect_ori[0], rect_ori[1]), rect_ori[4], rect_ori[5], fill=False, edgecolor='green', linewidth=1)
+        ax[1].add_patch(rect)
+        plt.savefig("%s.jpg"%num)
+#         plt.show()
