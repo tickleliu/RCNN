@@ -3,3 +3,13 @@
 .settings/
 __pycache__/
 output/
+*.asv
+*.jpg
+*.bmp
+*.png
+*.pkl
+*.rar
+*.zip
+*.npy
+output/
+output_RCNN/
