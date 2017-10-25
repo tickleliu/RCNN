@@ -33,10 +33,10 @@ for k = 1 : length(mFiles)
     padding = 5;
     for i = 1 : region_count
         bb_ = bb(i,:);
-        save_image_file_name = [train_path, '1/', num2str(count), '.bmp'];
+        
         fine_image_file_name = [fine_tune_path, '1/', num2str(count), '.bmp'];
-        fprintf(train_file, "%s %d\n", save_image_file_name, 1);
-        fprintf(fine_tune_list, "%s %d %d,%d,%d,%d\n", save_image_file_name,...
+        imwrite(image, fine_image_file_name);
+        fprintf(fine_tune_list, "%s %d %d,%d,%d,%d\n\r", fine_image_file_name,...
             1, floor(bb_(1)) + 1, floor(bb_(2)) + 1, bb_(3), bb_(4));
         if floor(bb_(2)) > padding
             bb_(2) = bb_(2) - padding;
@@ -58,10 +58,25 @@ for k = 1 : length(mFiles)
         image_temp(:,:,3) = image(floor(bb_(2)) + 1 : floor(bb_(2)) + bb_(4), ...
             floor(bb_(1)) + 1 : floor(bb_(1)) + bb_(3), 3);
         count = count + 1;
-        
-        
+        save_image_file_name = [train_path, '1/', num2str(count), '.bmp'];
+        fprintf(train_file, "%s %d\n\r", save_image_file_name, 1);
         imwrite(uint8(image_temp), save_image_file_name);
-        imwrite(image, fine_image_file_name);
+        
+        count = count + 1;
+        save_image_file_name = [train_path, '1/', num2str(count), '.bmp'];
+        fprintf(train_file, "%s %d\n\r", save_image_file_name, 1);
+        imwrite(uint8(rot90(image_temp)), save_image_file_name);
+        
+        count = count + 1;
+        save_image_file_name = [train_path, '1/', num2str(count), '.bmp'];
+        fprintf(train_file, "%s %d\n\r", save_image_file_name, 1);
+        imwrite(uint8(flipud(image_temp)), save_image_file_name);
+        
+        count = count + 1;
+        save_image_file_name = [train_path, '1/', num2str(count), '.bmp'];
+        fprintf(train_file, "%s %d\n\r", save_image_file_name, 1);
+        imwrite(uint8(fliplr(image_temp)), save_image_file_name);
+        
     end
     
     
@@ -81,7 +96,7 @@ for k = 1 : length(mFiles)
             b_loop_count = b_loop_count + 1;
             bcount = bcount + 1;
             save_image_file_name = [train_path, '0/', num2str(bcount), '.bmp'];
-            fprintf(train_file, "%s %d\n", save_image_file_name, 0);
+            fprintf(train_file, "%s %d\n\r", save_image_file_name, 0);
             image_temp = zeros( height + 1, width + 1, 3);
             image_temp(:,:,1) = image(y : y + height, ...
                 x : x + width, 1);
@@ -91,7 +106,7 @@ for k = 1 : length(mFiles)
                 x : x + width, 3);
             imwrite(uint8(image_temp), save_image_file_name);
         end
-        if b_loop_count > 5
+        if b_loop_count > 4
             break
         end
     end

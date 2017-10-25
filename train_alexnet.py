@@ -92,4 +92,6 @@ if __name__ == '__main__':
     X, Y = load_data(config.TRAIN_LIST, config.TRAIN_CLASS)
     net = create_alexnet(config.TRAIN_CLASS)
     train(net, X, Y, config.SAVE_MODEL_PATH)
+#     print(predict(net, config.SAVE_MODEL_PATH, X[0:100]))
+#     print(Y[0:100])
 

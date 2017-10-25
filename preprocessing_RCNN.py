@@ -122,6 +122,7 @@ def load_train_proposals(datafile, num_clss, save_path, threshold=0.5, is_svm=Fa
                 else:
                     label[index] = 1
                 labels.append(label)
+        tools.show_rect(tmp[0], candidates)
         tools.view_bar("processing image of %s" % datafile.split('\\')[-1].strip(), num + 1, len(train_list))
         if save:
             np.save((os.path.join(save_path, tmp[0].split('/')[-1].split('.')[0].strip()) + '_data.npy'), [images, labels])

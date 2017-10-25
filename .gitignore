@@ -13,3 +13,4 @@ output/
 *.npy
 output/
 output_RCNN/
+pre_train_model/

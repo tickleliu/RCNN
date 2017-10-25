@@ -61,7 +61,7 @@ if __name__ == '__main__':
     data_set = config.FINE_TUNE_DATA
     if len(os.listdir(config.FINE_TUNE_DATA)) == 0:
         print("Reading Data")
-        prep.load_train_proposals(config.FINE_TUNE_LIST, 2, save=True, save_path=data_set)
+        prep.load_train_proposals(config.FINE_TUNE_LIST, config.FINE_TUNE_CLASS - 1, save=True, save_path=data_set)
     print("Loading Data")
     X, Y = prep.load_from_npy(data_set)
     restore = False
