@@ -1,13 +1,39 @@
 close all; clear all; clc;
 %生成训练列表
-train_file_name = 'train_list.txt';
-fine_tune_list_name = 'fine_tune_list.txt';
+train_file_name = '../train_list.txt';
+fine_tune_list_name = '../fine_tune_list.txt';
 
 image_path = 'image/';
 mask_path = 'mask/';
 
-train_path = 'train/';
-fine_tune_path = 'fine_tune/';
+train_path = '../train/';
+train_path1 = 'train/';
+fine_tune_path = '../fine_tune/';
+fine_tune_path1 = 'fine_tune/';
+
+if ~exist(train_path)
+    mkdir(train_path);
+end
+
+if ~exist([train_path, '1/'])
+    mkdir([train_path, '1/']);
+end
+
+if ~exist([train_path, '0/'])
+    mkdir([train_path, '0/']);
+end
+
+if ~exist(fine_tune_path)
+    mkdir(fine_tune_path);
+end
+
+if ~exist([fine_tune_path, '0/'])
+    mkdir([fine_tune_path, '0/']);
+end
+
+if ~exist([fine_tune_path, '1/'])
+    mkdir([fine_tune_path, '1/']);
+end
 
 [ mFiles] = RangTraversal( image_path, '.bmp' );
 
@@ -24,10 +50,15 @@ for k = 1 : length(mFiles)
     mask_filename = [mask_path filename];
     mask = imread(mask_filename);
     sz = size(mask);
-    image = imread(filepath);
+    img = imread(filepath);
+    image_g = (img(:,:,1)+img(:,:,2)+img(:,:,3)) / 3;
+    image_h = histrogram(image_g);
+    img(:,:,1) = uint8(image_h);
+    img(:,:,2) = uint8(image_h);
+    img(:,:,3) = uint8(image_h);
     bw = bwlabel(mask(:,:,1), 8);
     subplot(1,2,1)
-    imshow(image);
+    imshow(img);
     subplot(1,2,2)
     imshow(mask);
     region_count = max(max(bw));
@@ -38,8 +69,9 @@ for k = 1 : length(mFiles)
         bb_ = bb(i,:);
         
         fine_image_file_name = [fine_tune_path, '1/', num2str(count), '.bmp'];
-        imwrite(image, fine_image_file_name);
-        fprintf(fine_tune_list, "%s %d %d,%d,%d,%d\n\r", fine_image_file_name,...
+        fine_image_file_name1 = [fine_tune_path1, '1/', num2str(count), '.bmp'];
+        imwrite(img, fine_image_file_name);
+        fprintf(fine_tune_list, "%s %d %d,%d,%d,%d\n\r", fine_image_file_name1,...
             1, floor(bb_(1)) + 1, floor(bb_(2)) + 1, bb_(3), bb_(4));
         if floor(bb_(2)) > padding
             bb_(2) = bb_(2) - padding;
@@ -54,30 +86,35 @@ for k = 1 : length(mFiles)
             bb_(3) = bb_(3) + padding;
         end
         image_temp = zeros( bb_(4), bb_(3), 3);
-        image_temp(:,:,1) = image(floor(bb_(2)) + 1 : floor(bb_(2)) + bb_(4), ...
+        image_temp(:,:,1) = img(floor(bb_(2)) + 1 : floor(bb_(2)) + bb_(4), ...
             floor(bb_(1)) + 1 : floor(bb_(1)) + bb_(3), 1);
-        image_temp(:,:,2) = image(floor(bb_(2)) + 1 : floor(bb_(2)) + bb_(4), ...
+        image_temp(:,:,2) = img(floor(bb_(2)) + 1 : floor(bb_(2)) + bb_(4), ...
             floor(bb_(1)) + 1 : floor(bb_(1)) + bb_(3), 2);
-        image_temp(:,:,3) = image(floor(bb_(2)) + 1 : floor(bb_(2)) + bb_(4), ...
+        image_temp(:,:,3) = img(floor(bb_(2)) + 1 : floor(bb_(2)) + bb_(4), ...
             floor(bb_(1)) + 1 : floor(bb_(1)) + bb_(3), 3);
+
         count = count + 1;
         save_image_file_name = [train_path, '1/', num2str(count), '.bmp'];
-        fprintf(train_file, "%s %d\n\r", save_image_file_name, 1);
+        save_image_file_name1 = [train_path1, '1/', num2str(count), '.bmp'];
+        fprintf(train_file, "%s %d\n\r", save_image_file_name1, 1);
         imwrite(uint8(image_temp), save_image_file_name);
         
         count = count + 1;
         save_image_file_name = [train_path, '1/', num2str(count), '.bmp'];
-        fprintf(train_file, "%s %d\n\r", save_image_file_name, 1);
+        save_image_file_name1 = [train_path1, '1/', num2str(count), '.bmp'];
+        fprintf(train_file, "%s %d\n\r", save_image_file_name1, 1);
         imwrite(uint8(rot90(image_temp)), save_image_file_name);
         
         count = count + 1;
         save_image_file_name = [train_path, '1/', num2str(count), '.bmp'];
-        fprintf(train_file, "%s %d\n\r", save_image_file_name, 1);
+        save_image_file_name1 = [train_path1, '1/', num2str(count), '.bmp'];
+        fprintf(train_file, "%s %d\n\r", save_image_file_name1, 1);
         imwrite(uint8(flipud(image_temp)), save_image_file_name);
         
         count = count + 1;
         save_image_file_name = [train_path, '1/', num2str(count), '.bmp'];
-        fprintf(train_file, "%s %d\n\r", save_image_file_name, 1);
+        save_image_file_name1 = [train_path1, '1/', num2str(count), '.bmp'];
+        fprintf(train_file, "%s %d\n\r", save_image_file_name1, 1);
         imwrite(uint8(fliplr(image_temp)), save_image_file_name);
         
     end
@@ -99,13 +136,14 @@ for k = 1 : length(mFiles)
             b_loop_count = b_loop_count + 1;
             bcount = bcount + 1;
             save_image_file_name = [train_path, '0/', num2str(bcount), '.bmp'];
-            fprintf(train_file, "%s %d\n\r", save_image_file_name, 0);
+            save_image_file_name1 = [train_path1, '0/', num2str(bcount), '.bmp'];
+            fprintf(train_file, "%s %d\n\r", save_image_file_name1, 0);
             image_temp = zeros( height + 1, width + 1, 3);
-            image_temp(:,:,1) = image(y : y + height, ...
+            image_temp(:,:,1) = img(y : y + height, ...
                 x : x + width, 1);
-            image_temp(:,:,2) = image(y : y + height, ...
+            image_temp(:,:,2) = img(y : y + height, ...
                 x : x + width, 2);
-            image_temp(:,:,3) = image(y : y + height, ...
+            image_temp(:,:,3) = img(y : y + height, ...
                 x : x + width, 3);
             imwrite(uint8(image_temp), save_image_file_name);
         end
@@ -118,38 +156,3 @@ for k = 1 : length(mFiles)
     end
 end
 fclose(train_file);
-
-function ratio = IOU(Reframe,GTframe)
-%Reframe(x,y,w,h) x,y为左上角坐标
-x1 = Reframe(1);
-y1 = Reframe(2);
-width1 = Reframe(3);
-height1 = Reframe(4);
-
-
-x2 = GTframe(1);
-y2 = GTframe(2);
-width2 = GTframe(3);
-height2 = GTframe(4);
-
-
-endx = max(x1+width1,x2+width2);%x轴最大值
-startx = min(x1,x2);%x轴最小值
-width = width1+width2-(endx-startx);%重叠矩形宽
-
-
-endy = max(y1+height1,y2+height2);%y轴最大值
-starty = min(y1,y2);%y轴最小值
-height = height1+height2-(endy-starty);%重叠矩形宽
-
-
-if width<=0||height<=0
-    ratio = 0;
-    Area=0;
-else
-    Area = width*height;%冲得面积
-    Area1 = width1*height1;%第一个Box面积
-    Area2 = width2*height2;%第二个Box面积
-    ratio = Area/(Area1+Area2-Area);%重叠率
-end
-end

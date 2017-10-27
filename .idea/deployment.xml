@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="server43">
+    <serverData>
+      <paths name="Copy of project-level server 'server43'">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/rcnn" local="$PROJECT_DIR$" web="/rcnn" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="server43">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/rcnn" local="$PROJECT_DIR$" web="/rcnn" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/fine_tune_model" />
+            <excludedPath local="true" path="$PROJECT_DIR$/pre_train_model" />
+            <excludedPath local="true" path="$PROJECT_DIR$/svm_train" />
+            <excludedPath local="true" path="$PROJECT_DIR$/data_set" />
+            <excludedPath local="true" path="$PROJECT_DIR$/17flowers" />
+            <excludedPath local="true" path="$PROJECT_DIR$/2flowers" />
+            <excludedPath local="true" path="$PROJECT_DIR$/matlab_for_preprocess" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="af69ae1a-5fca-4609-9625-0b05818d0935" name="server43" url="http://166.111.64.126">
+        <fileTransfer host="166.111.64.126" port="8843" rootFolder="/home/liuml" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="8843" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
