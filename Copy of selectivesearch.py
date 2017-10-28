@@ -337,8 +337,8 @@ if __name__ == "__main__":
         image_path = tmp[0];
         x,y,w,h = map(int, tmp[2].split(','))
         rect_ori = [x, y, x+ w, y + h, w, h];
-        scale = 10
-        min_size = 50
+        scale = 1 
+        min_size = 80
         im_orig = skimage.io.imread(image_path)
         im_mask = skimage.segmentation.felzenszwalb(
             skimage.util.img_as_float(im_orig), scale=scale, sigma=0.8,
@@ -357,21 +357,25 @@ if __name__ == "__main__":
                 im_patch[i, j, 0] = colors[im_mask[i, j], 0]
                 im_patch[i, j, 1] = colors[im_mask[i, j], 1]
                 im_patch[i, j, 2] = colors[im_mask[i, j], 2]
-        fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(6, 6))
-        ax[0].imshow(im_patch)
+#         fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(6, 6))
+#         ax[0].imshow(im_patch)
         img, regions = selective_search(im_orig, scale=scale, sigma=0.8, min_size=min_size)
-        ax[1].imshow(im_orig)
+#         ax[1].imshow(im_orig)
         print(len(regions))
+        count = 0
+        total = 0
         for item in regions:
             x, y, w, h = item['rect']
+            total = total + 1
             r = IOU(item['rect'], rect_ori)
             if r != False and r > 0.4:
-                rect = mpatches.Rectangle(
-                    (x, y), w, h, fill=False, edgecolor='red', linewidth=1)
-                ax[1].add_patch(rect)
-                 
-        rect = mpatches.Rectangle(
-                    (rect_ori[0], rect_ori[1]), rect_ori[4], rect_ori[5], fill=False, edgecolor='green', linewidth=1)
-        ax[1].add_patch(rect)
-        plt.savefig("%s.jpg"%num)
+                count = count + 1
+        print('total %d, count %d'%(total, count))
+#                 rect = mpatches.Rectangle(
+#                     (x, y), w, h, fill=False, edgecolor='red', linewidth=1)
+#                 ax[1].add_patch(rect)
+#         rect = mpatches.Rectangle(
+#                     (rect_ori[0], rect_ori[1]), rect_ori[4], rect_ori[5], fill=False, edgecolor='green', linewidth=1)
+#         ax[1].add_patch(rect)
+#         plt.savefig("%s.jpg"%num)
 #         plt.show()

@@ -14,3 +14,4 @@ output/
 output/
 output_RCNN/
 pre_train_model/
+fine_tune_model/

@@ -17,5 +17,5 @@ if __name__ == '__main__':
     # save fine-tune model
     mkdir(config.FINE_TUNE_MODEL_PATH.strip().rsplit('/', 1)[0])
     # save svm model and data
+    mkdir(config.TRAIN_SVM)   
     mkdir(os.path.join(config.TRAIN_SVM, '1'))
-    mkdir(os.path.join(config.TRAIN_SVM, '2'))
