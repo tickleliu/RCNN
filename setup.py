@@ -19,3 +19,4 @@ if __name__ == '__main__':
     # save svm model and data
     mkdir(config.TRAIN_SVM)   
     mkdir(os.path.join(config.TRAIN_SVM, '1'))
+    mkdir(config.RESULT)

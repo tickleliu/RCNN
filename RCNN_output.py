@@ -111,7 +111,7 @@ def train_svms(train_file_folder, model):
             print("feature dimension")
             print(np.shape(train_features))
             # SVM training
-            clf = svm.LinearSVC(class_weight='balanced')
+            clf = svm.SVC(kernel='linear', probability=True, class_weight='balanced')
             print("fit svm")
             clf.fit(train_features, Y)
             svms.append(clf)
@@ -130,6 +130,7 @@ if __name__ == '__main__':
         if file.split('_')[-1] == 'svm.pkl':
             svms.append(joblib.load(os.path.join(train_file_folder, file)))
     if len(svms) == 0:
+        print(0)
         svms = train_svms(train_file_folder, model)
     print("Done fitting svms")
 
@@ -157,8 +158,8 @@ if __name__ == '__main__':
             print("predict image:")
             print(np.shape(features))
             results = []
-            results_label = []
-            results_pre = []
+            results_dict= []
+            
             count = 0
 
             for f in features:
@@ -168,8 +169,8 @@ if __name__ == '__main__':
                     if pred[0] != 0:
                         if verts[count][2] * verts[count][3] < width * height / 3:
                             results.append(verts[count])
-                            results_label.append(pred[0])
-                            results_pre.append(pred)
+                            dict_item = {'index':count, 'rect': verts[count], 'prob': svm.predict_proba([f.tolist()])}
+                            results_dict.append(dict_item)
                 count += 1
 
             result_iou = []
@@ -202,3 +203,4 @@ if __name__ == '__main__':
             cv2.imwrite("results/%d.jpg" % num, img)
         except Exception as e:
             traceback.print_exc()
+

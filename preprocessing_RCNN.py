@@ -63,7 +63,7 @@ def clip_pic(img, rect):
 
 
 # Read in data and save data for Alexnet
-def load_train_proposals(datafile, num_clss, save_path, threshold=0.4, is_svm=False, save=False):
+def load_train_proposals(datafile, num_clss, save_path, threshold=0.3, is_svm=False, save=False):
     fr = open(datafile, 'r')
     train_list = fr.readlines()
     # random.shuffle(train_list)
