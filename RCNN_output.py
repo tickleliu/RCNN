@@ -1,23 +1,24 @@
 from __future__ import division, print_function, absolute_import
-import numpy as np
-import selectivesearch
+
+import os
 import os.path
+
+import cv2
+import numpy as np
+import tflearn
 from sklearn import svm
 from sklearn.externals import joblib
-import preprocessing_RCNN as prep
-import os
-import tools
-import cv2
-import config
-import tflearn
-from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.conv import conv_2d, max_pool_2d
-from tflearn.layers.normalization import local_response_normalization
+from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.estimator import regression
+from tflearn.layers.normalization import local_response_normalization
+
+import config
 import preprocessing_RCNN
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import skimage.io
+import preprocessing_RCNN as prep
+import selectivesearch
+import tools
+
 
 def image_proposal(img_path):
     img = cv2.imread(img_path)
@@ -181,30 +182,15 @@ if __name__ == '__main__':
                             result_iou_t = result_iou_t + iou
                 result_iou.append(result_iou_t)
             index = result_iou.index(max(result_iou))
-            
-            results = results[index : index + 1]
+
+            results = results[index: index + 1]
             print(results)
-            fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(6, 6))
-            im_orig = skimage.io.imread(img_path)
-            ax.imshow(im_orig)
+            img = cv2.imread(img_path)
             for item in results:
                 x, y, w, h = item
-                rect = mpatches.Rectangle(
-                                          (x, y), w, h, fill=False, edgecolor='red', linewidth=2)
-                ax.add_patch(rect)
+                cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 5)
             x, y, w, h = map(int, tmp[2].split(','))
-            rect = mpatches.Rectangle(
-                                      (x, y), w, h, fill=False, edgecolor='green', linewidth=2)
-            ax.add_patch(rect)
-            plt.savefig("%s.jpg" % num)
-            plt.close()
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 5)
+            cv2.imwrite("%s.jpg" % num, img)
         except Exception:
             pass
-    
-        
-        
-        
-        
-        
-        
-        
