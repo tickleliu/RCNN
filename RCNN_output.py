@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import os
 import os.path
+import traceback
 
 import cv2
 import numpy as np
@@ -23,7 +24,7 @@ import tools
 def image_proposal(img_path):
     img = cv2.imread(img_path)
     img_lbl, regions = selectivesearch.selective_search(
-                       img, scale=1, sigma=0.9, min_size=80)
+        img, scale=1, sigma=0.9, min_size=80)
     candidates = set()
     images = []
     vertices = []
@@ -110,7 +111,7 @@ def train_svms(train_file_folder, model):
             print("feature dimension")
             print(np.shape(train_features))
             # SVM training
-            clf = svm.LinearSVC(class_weight={0:2, 1:1})
+            clf = svm.LinearSVC(class_weight='balanced')
             print("fit svm")
             clf.fit(train_features, Y)
             svms.append(clf)
@@ -131,7 +132,7 @@ if __name__ == '__main__':
     if len(svms) == 0:
         svms = train_svms(train_file_folder, model)
     print("Done fitting svms")
-    
+
     # evaluate
     fr = open(config.FINE_TUNE_LIST, 'r')
     train_list = fr.readlines()
@@ -146,10 +147,11 @@ if __name__ == '__main__':
             verts = []
             imgs = []
             for i in range(len(verts_t)):
-                if verts_t[i][2] * verts_t[i][3] < width * height / 3 and verts_t[i][2] < width / 2 and verts_t[i][3] < height / 2:
+                if verts_t[i][2] * verts_t[i][3] < width * height / 3 and verts_t[i][2] < width / 2 and verts_t[i][
+                    3] < height / 2:
                     verts.append(verts_t[i])
                     imgs.append(imgs_t[i])
-                    
+
             print(len(imgs))
             features = model.predict(imgs)
             print("predict image:")
@@ -158,7 +160,7 @@ if __name__ == '__main__':
             results_label = []
             results_pre = []
             count = 0
-      
+
             for f in features:
                 for svm in svms:
                     pred = svm.predict([f.tolist()])
@@ -169,7 +171,7 @@ if __name__ == '__main__':
                             results_label.append(pred[0])
                             results_pre.append(pred)
                 count += 1
-            
+
             result_iou = []
             for result in results:
                 result_iou_t = 0
@@ -181,16 +183,22 @@ if __name__ == '__main__':
                         if iou > 0.5:
                             result_iou_t = result_iou_t + iou
                 result_iou.append(result_iou_t)
-            index = result_iou.index(max(result_iou))
+            # index = result_iou.index(max(result_iou))
+            # results = results[index: index + 1]
+            result_i = sorted(range(len(result_iou)), key=result_iou.__getitem__, reverse=True)
+            result_i = result_i[0: 5]
+            print(result_iou)
+            print(np.asarray(result_iou)[result_i])
+            img_ori = img_path.split('/')[-1]
+            print('ori/' + img_ori)
+            img = cv2.imread('ori/' + img_ori)
+            print(img.shape)
 
-            results = results[index: index + 1]
-            print(results)
-            img = cv2.imread(img_path)
-            for item in results:
-                x, y, w, h = item
-                cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 5)
+            for item in result_i:
+                x, y, w, h = results[item]
+                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 1)  # B,G,R
             x, y, w, h = map(int, tmp[2].split(','))
-            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 5)
-            cv2.imwrite("%s.jpg" % num, img)
-        except Exception:
-            pass
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 1)
+            cv2.imwrite("results/%d.jpg" % num, img)
+        except Exception as e:
+            traceback.print_exc()

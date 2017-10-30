@@ -51,6 +51,10 @@ for k = 1 : length(mFiles)
     mask = imread(mask_filename);
     sz = size(mask);
     img = imread(filepath);
+    img_ori = img;
+    mask_ori = mask;
+
+    
     image_g = (img(:,:,1)+img(:,:,2)+img(:,:,3)) / 3;
     image_h = histrogram(image_g);
     img(:,:,1) = uint8(image_h);
@@ -73,6 +77,11 @@ for k = 1 : length(mFiles)
         imwrite(img, fine_image_file_name);
         fprintf(fine_tune_list, "%s %d %d,%d,%d,%d\n", fine_image_file_name1,...
             1, floor(bb_(1)) + 1, floor(bb_(2)) + 1, bb_(3), bb_(4));
+        
+        ori_image_file_name = ['../ori/', num2str(count), '.bmp'];
+        imwrite(uint8(img_ori), ori_image_file_name);
+        ori_mask_file_name = ['../ori_mask/', num2str(count), '.bmp'];
+        imwrite(uint8(mask), ori_mask_file_name);
         if floor(bb_(2)) > padding
             bb_(2) = bb_(2) - padding;
         end
