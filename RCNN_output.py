@@ -206,7 +206,7 @@ if __name__ == '__main__':
                 results.append(temp)
             results = np.array(results)
             print(results.shape)
-            results_in = nms.nms(results, 0.5)
+            results_in = nms.nms(results, 0.3)
             print(results_in)
             results = results[results_in, :]
             print(results.shape)
