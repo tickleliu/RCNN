@@ -2,10 +2,24 @@
 <project version="4">
   <component name="PublishConfigData" autoUpload="Always" serverName="server43">
     <serverData>
+      <paths name="Copy of project-level server 'server29'">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="Copy of project-level server 'server43'">
         <serverdata>
           <mappings>
             <mapping deploy="/rcnn" local="$PROJECT_DIR$" web="/rcnn" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="server29">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/second_RCNN_up" local="$PROJECT_DIR$" web="/second_RCNN_up" />
           </mappings>
         </serverdata>
       </paths>
