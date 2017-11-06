@@ -340,8 +340,21 @@ if __name__ == "__main__":
         scale = 1 
         min_size = 80
         im_orig = skimage.io.imread(image_path)
+        im_orig = skimage.util.img_as_float(im_orig)
+        m = [numpy.mean(im_orig[:,:,i]) for i in range(3)]
+        std = [numpy.std(im_orig[:,:,i]) for i in range(3)]
+        im_orig = [(im_orig[:,:,i] - m[i]) / std[i] for i in range(3)]
+        
+        im_orig = numpy.array(im_orig)
+        im_orig = numpy.transpose(im_orig, [1, 2, 0])
+        
+        m = [numpy.mean(im_orig[:,:,i]) for i in range(3)]
+        std = [numpy.std(im_orig[:,:,i]) for i in range(3)]
+        print(im_orig.shape)
+        print(m)
+        print(std)
         im_mask = skimage.segmentation.felzenszwalb(
-            skimage.util.img_as_float(im_orig), scale=scale, sigma=0.8,
+            im_orig, scale=scale, sigma=0.8,
             min_size=min_size)
         sz = im_mask.shape
         im_patch = numpy.zeros((sz[0], sz[1], 3))
@@ -357,10 +370,10 @@ if __name__ == "__main__":
                 im_patch[i, j, 0] = colors[im_mask[i, j], 0]
                 im_patch[i, j, 1] = colors[im_mask[i, j], 1]
                 im_patch[i, j, 2] = colors[im_mask[i, j], 2]
-#         fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(6, 6))
-#         ax[0].imshow(im_patch)
+        fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(6, 6))
+        ax[0].imshow(im_patch)
         img, regions = selective_search(im_orig, scale=scale, sigma=0.8, min_size=min_size)
-#         ax[1].imshow(im_orig)
+        ax[1].imshow(im_orig)
         print(len(regions))
         count = 0
         total = 0
@@ -371,11 +384,11 @@ if __name__ == "__main__":
             if r != False and r > 0.4:
                 count = count + 1
         print('total %d, count %d'%(total, count))
-#                 rect = mpatches.Rectangle(
-#                     (x, y), w, h, fill=False, edgecolor='red', linewidth=1)
-#                 ax[1].add_patch(rect)
-#         rect = mpatches.Rectangle(
-#                     (rect_ori[0], rect_ori[1]), rect_ori[4], rect_ori[5], fill=False, edgecolor='green', linewidth=1)
-#         ax[1].add_patch(rect)
-#         plt.savefig("%s.jpg"%num)
-#         plt.show()
+        rect = mpatches.Rectangle(
+                    (x, y), w, h, fill=False, edgecolor='red', linewidth=1)
+        ax[1].add_patch(rect)
+        rect = mpatches.Rectangle(
+                    (rect_ori[0], rect_ori[1]), rect_ori[4], rect_ori[5], fill=False, edgecolor='green', linewidth=1)
+        ax[1].add_patch(rect)
+        plt.savefig("%s.jpg"%num)
+        plt.show()

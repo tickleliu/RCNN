@@ -6,6 +6,9 @@ import cv2
 import config
 import os
 import random
+import skimage
+import skimage.io
+import skimage.util
 
 
 def resize_image(in_image, new_width, new_height, out_image=None, resize_mode=cv2.INTER_CUBIC):
@@ -63,7 +66,7 @@ def clip_pic(img, rect):
 
 
 # Read in data and save data for Alexnet
-def load_train_proposals(datafile, num_clss, save_path, threshold=0.4, is_svm=False, save=False):
+def load_train_proposals(datafile, num_clss, save_path, threshold=0.3, is_svm=False, save=False):
     fr = open(datafile, 'r')
     train_list = fr.readlines()
     # random.shuffle(train_list)
@@ -76,7 +79,14 @@ def load_train_proposals(datafile, num_clss, save_path, threshold=0.4, is_svm=Fa
         # tmp0 = image address
         # tmp1 = label
         # tmp2 = rectangle vertices
-        img = cv2.imread(tmp[0])
+        img = skimage.io.imread(tmp[0])
+        img = skimage.util.img_as_float(img)
+        m = [np.mean(img[:,:,i]) for i in range(3)]
+        std = [np.std(img[:,:,i]) for i in range(3)]
+        img = [(img[:,:,i] - m[i]) / std[i] for i in range(3)]
+        
+        img = np.array(img)
+        img = np.transpose(img, [1, 2, 0])
         img_lbl, regions = selectivesearch.selective_search(
                                img, scale=1, sigma=0.9, min_size=80)
         candidates = set()
