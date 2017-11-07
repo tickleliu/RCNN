@@ -18,10 +18,9 @@ from tflearn.layers.normalization import local_response_normalization
 import tensorflow as tf
 
 import config
-import preprocessing_RCNN
 import preprocessing_RCNN as prep
 import selectivesearch
-import tools
+import train_svm
 import nms
 
 
@@ -117,46 +116,36 @@ def create_alexnet():
     return network
 
 
-# Construct cascade svms
-def train_svms(train_file_folder, model):
-    files = os.listdir(train_file_folder)
-    svms = []
-    for train_file in files:
-        if train_file.split('.')[-1] == 'txt':
-            X, Y = generate_single_svm_train(os.path.join(train_file_folder, train_file))
-            train_features = []
-            for ind, i in enumerate(X):
-                # extract features
-                feats = model.predict([i])
-                train_features.append(feats[0])
-                tools.view_bar("extract features of %s" % train_file, ind + 1, len(X))
-            print(' ')
-            print("feature dimension")
-            print(np.shape(train_features))
-            # SVM training
-            clf = svm.SVC(kernel='linear', probability=True, class_weight='balanced')
-            print("fit svm")
-            clf.fit(train_features, Y)
-            svms.append(clf)
-            joblib.dump(clf, os.path.join(train_file_folder, str(train_file.split('.')[0]) + '_svm.pkl'))
-    return svms
-
-
 if __name__ == '__main__':
-    train_file_folder = config.TRAIN_SVM
-
     net = create_alexnet()
     model = tflearn.DNN(net)
     model.load(config.FINE_TUNE_MODEL_PATH)
+
+    train_file_folder = config.TRAIN_SVM
     svms = []
     for file in os.listdir(train_file_folder):
         if file.split('_')[-1] == 'svm.pkl':
             svms.append(joblib.load(os.path.join(train_file_folder, file)))
-    if len(svms) == 0:
-        print(0)
-        svms = train_svms(train_file_folder, model)
-    print("Done fitting svms")
 
+    train_svr_file_folder = config.TRAIN_SVR
+    svrxs = []
+    svrys = []
+    svrws = []
+    svrhs = []
+    for file in os.listdir(train_svr_file_folder):
+        if file.split('_')[-1] == 'svm@x.pkl':
+            svrxs.append(joblib.load(os.path.join(train_svr_file_folder, file)))
+
+        if file.split('_')[-1] == 'svm@y.pkl':
+            svrys.append(joblib.load(os.path.join(train_svr_file_folder, file)))
+
+        if file.split('_')[-1] == 'svm@w.pkl':
+            svrws.append(joblib.load(os.path.join(train_svr_file_folder, file)))
+
+        if file.split('_')[-1] == 'svm@h.pkl':
+            svrhs.append(joblib.load(os.path.join(train_svr_file_folder, file)))
+
+    print("Done loading svms")
     # evaluate
     fr = open(config.FINE_TUNE_LIST, 'r')
     train_list = fr.readlines()
@@ -164,15 +153,14 @@ if __name__ == '__main__':
     for num, line in enumerate(train_list):
         try:
             tmp = line.strip().split(' ')
-            img_path = tmp[0];
+            img_path = tmp[0]
             imgs_t, verts_t = image_proposal(img_path)
             img = cv2.imread(img_path)
             [width, height, channel] = img.shape
             verts = []
             imgs = []
             for i in range(len(verts_t)):
-                if verts_t[i][2] * verts_t[i][3] < width * height / 3 and verts_t[i][2] < width / 2 and verts_t[i][
-                    3] < height / 2:
+                if verts_t[i][2] * verts_t[i][3] < width * height / 3 and verts_t[i][2] < width / 2 and verts_t[i][3] < height / 2:
                     verts.append(verts_t[i])
                     imgs.append(imgs_t[i])
 
@@ -181,22 +169,37 @@ if __name__ == '__main__':
             print("predict image:")
             print(np.shape(features))
             results = []
-            results_dict= []
+            results_dict = []
             
             count = 0
 
             for f in features:
-                for svm in svms:
+                for svm, svrx, svry, svrw, svrh in zip(svms, svrxs, svrys, svrws, svrhs):
                     pred = svm.predict([f.tolist()])
                     # not background
                     if pred[0] != 0:
                         if verts[count][2] * verts[count][3] < width * height / 3:
-                            results.append(verts[count])
+
+                            # bouding box regression
+                            tx = svrx.predict([f.tolist()])
+                            ty = svry.predict([f.tolist()])
+                            tw = svrw.predict([f.tolist()])
+                            th = svrh.predict([f.tolist()])
+
                             verts[count] = list(verts[count])
+                            verts[count][0] = tx * verts[count][2] + verts[count][0]
+                            verts[count][1] = ty * verts[count][3] + verts[count][1]
+                            verts[count][2] = np.exp(tw) * verts[count][2]
+                            verts[count][3] = np.exp(th) * verts[count][3]
+
+                            #
+                            results.append(verts[count])
+
                             verts[count][2] = verts[count][0] + verts[count][2]
                             verts[count][3] = verts[count][1] + verts[count][3]
-                            dict_item = {'index':count, 'rect': verts[count], 'prob': svm.predict_proba([f.tolist()])}
+                            dict_item = {'index': count, 'rect': verts[count], 'prob': svm.predict_proba([f.tolist()])}
                             results_dict.append(dict_item)
+
                 count += 1
             
             results = []
@@ -210,35 +213,19 @@ if __name__ == '__main__':
             print(results_in)
             results = results[results_in, :]
             print(results.shape)
-#             result_iou = []
-#             for result in results:
-#                 result_iou_t = 0
-#                 for result2 in results:
-#                     if result == result2:
-#                         continue
-#                     else:
-#                         iou = preprocessing_RCNN.calcIOU(result, result2)
-#                         if iou > 0.5:
-#                             result_iou_t = result_iou_t + iou
-#                 result_iou.append(result_iou_t)
-#             # index = result_iou.index(max(result_iou))
-#             # results = results[index: index + 1]
-#             result_i = sorted(range(len(result_iou)), key=result_iou.__getitem__, reverse=True)
-#             result_i = result_i[0: 5]
-#             print(result_iou)
-#             print(np.asarray(result_iou)[result_i])
-            img_ori = img_path.split('/')[-1]
-            print('ori/' + img_ori)
+            # img_ori = img_path.split('/')[-1]
+            # print('ori/' + img_ori)
 #             img = cv2.imread('ori/' + img_ori)
             img = cv2.imread(img_path)
             print(img.shape)
 
             for item in results:
-                x, y, x1, y1 = item[0 : 4]
+                x, y, x1, y1 = item[0: 4]
                 cv2.rectangle(img, (int(x), int(y)), (int(x1), int(y1)), (0, 0, 255), 1)  # B,G,R
             x, y, w, h = map(int, tmp[2].split(','))
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 1)
             cv2.imwrite("results/%d.jpg" % num, img)
+
         except Exception as e:
             traceback.print_exc()
 

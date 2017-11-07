@@ -1,14 +1,16 @@
 from __future__ import division, print_function, absolute_import
-import numpy as np
-import selectivesearch
-import tools
-import cv2
-import config
+
 import os
-import random
+
+import cv2
+import numpy as np
 import skimage
 import skimage.io
 import skimage.util
+
+import config
+import selectivesearch
+import tools
 
 
 def resize_image(in_image, new_width, new_height, out_image=None, resize_mode=cv2.INTER_CUBIC):
