@@ -124,7 +124,8 @@ def load_train_proposals(datafile, num_clss, save_path, threshold=0.3, is_svm=Fa
             # labels, let 0 represent default class, which is background
             index = int(tmp[1])
             if is_svm:
-                if iou_val < threshold:
+                # if iou_val < threshold:
+                if iou_val < 0.3:
 #                     labels.append(0)
                     image0s.append(img_float)
                     label0s.append(0)
@@ -133,7 +134,8 @@ def load_train_proposals(datafile, num_clss, save_path, threshold=0.3, is_svm=Fa
                     images.append(img_float)
             else:
                 label = np.zeros(num_clss + 1)
-                if iou_val < threshold:
+                # if iou_val < threshold:
+                if iou_val < 0.3:
                     label[0] = 1
                     image0s.append(img_float)
                     label0s.append(label)

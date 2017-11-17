@@ -28,9 +28,9 @@ def image_proposal(img_path):
     img = cv2.imread(img_path)
     img = skimage.io.imread(tmp[0])
     img = skimage.util.img_as_float(img)
-    m = [np.mean(img[:,:,i]) for i in range(3)]
-    std = [np.std(img[:,:,i]) for i in range(3)]
-    img = [(img[:,:,i] - m[i]) / std[i] for i in range(3)]
+    m = [np.mean(img[:, :, i]) for i in range(3)]
+    std = [np.std(img[:, :, i]) for i in range(3)]
+    img = [(img[:, :, i] - m[i]) / std[i] for i in range(3)]
     img = np.array(img)
     img = np.transpose(img, [1, 2, 0])
     img_lbl, regions = selectivesearch.selective_search(
@@ -83,7 +83,7 @@ def generate_single_svm_train(train_file):
 # Use a already trained alexnet with the last layer redesigned
 def create_alexnet():
     # Building 'AlexNet'
-    in_put= input_data(shape=[None, 227, 227, 3], dtype=tf.float32)
+    in_put = input_data(shape=[None, 227, 227, 3], dtype=tf.float32)
     conv1 = conv_2d(in_put, 96, 11, strides=4, activation='relu', padding='same')
     lrn = local_response_normalization(conv1, depth_radius=2, alpha=2e-05, beta=0.75, bias=1.0)
     pool1 = max_pool_2d(lrn, 3, strides=2, padding='valid')
@@ -92,28 +92,36 @@ def create_alexnet():
     conv2_2 = conv_2d(lrn_2, 128, 5, activation='relu', padding="same")
     conv2 = tf.concat([conv2_1, conv2_2], 3)
     lru = local_response_normalization(conv2, depth_radius=2, alpha=2e-05, beta=0.75, bias=1.0)
-    pool2= max_pool_2d(lru, 3, strides=2, padding='valid')
+    pool2 = max_pool_2d(lru, 3, strides=2, padding='valid')
     conv3 = conv_2d(pool2, 384, 3, activation='relu', padding="same")
 
     conv3_1, conv3_2 = tf.split(conv3, 2, 3)
     conv4_1 = conv_2d(conv3_1, 192, 3, activation='relu', padding="same")
     conv4_2 = conv_2d(conv3_2, 192, 3, activation='relu', padding="same")
-#     conv4 = tf.concat([conv4_1, conv4_2], 3)
-    
+    #     conv4 = tf.concat([conv4_1, conv4_2], 3)
+
     conv5_1 = conv_2d(conv4_1, 128, 3, activation='relu', padding="same")
     conv5_2 = conv_2d(conv4_2, 128, 3, activation='relu', padding="same")
     conv5 = tf.concat([conv5_1, conv5_2], 3)
-    
+
     pool3 = max_pool_2d(conv5, 3, strides=2, padding='valid')
-#     lru = local_response_normalization(pool3)
+    #     lru = local_response_normalization(pool3)
     fc1 = fully_connected(pool3, 4096, activation='relu')
     dp1 = dropout(fc1, 0.5)
     fc2 = fully_connected(dp1, 4096, activation='relu')
-#     dp2 = dropout(fc2, 0.5)
+    #     dp2 = dropout(fc2, 0.5)
     network = regression(fc2, optimizer='momentum',
-                        loss='categorical_crossentropy',
-                        learning_rate=0.001)
+                         loss='categorical_crossentropy',
+                         learning_rate=0.001)
     return network
+
+
+#############################################################
+def eval(results, threshold=0.5):
+    for item in results:
+        pass
+    mAP = 0
+    return mAP
 
 
 if __name__ == '__main__':
@@ -150,9 +158,13 @@ if __name__ == '__main__':
     fr = open(config.FINE_TUNE_LIST, 'r')
     train_list = fr.readlines()
     # random.shuffle(train_list)
+    map_results = []
     for num, line in enumerate(train_list):
         try:
             tmp = line.strip().split(' ')
+            ref_rect = tmp[2].split(',')
+            ref_rect_int = [int(i) for i in ref_rect]
+
             img_path = tmp[0]
             imgs_t, verts_t = image_proposal(img_path)
             img = cv2.imread(img_path)
@@ -160,7 +172,8 @@ if __name__ == '__main__':
             verts = []
             imgs = []
             for i in range(len(verts_t)):
-                if verts_t[i][2] * verts_t[i][3] < width * height / 3 and verts_t[i][2] < width / 2 and verts_t[i][3] < height / 2:
+                if verts_t[i][2] * verts_t[i][3] < width * height / 3 and verts_t[i][2] < width / 2 and verts_t[i][
+                    3] < height / 2:
                     verts.append(verts_t[i])
                     imgs.append(imgs_t[i])
 
@@ -170,7 +183,7 @@ if __name__ == '__main__':
             print(np.shape(features))
             results = []
             results_dict = []
-            
+
             count = 0
 
             for f in features:
@@ -179,7 +192,6 @@ if __name__ == '__main__':
                     # not background
                     if pred[0] != 0:
                         if verts[count][2] * verts[count][3] < width * height / 3:
-
                             # bouding box regression
                             tx = svrx.predict([f.tolist()])
                             ty = svry.predict([f.tolist()])
@@ -201,31 +213,34 @@ if __name__ == '__main__':
                             results_dict.append(dict_item)
 
                 count += 1
-            
+
             results = []
             for item in results_dict:
                 temp = item['rect']
                 temp.append(item['prob'][0][1])
+                temp.append(ref_rect_int)
                 results.append(temp)
+
             results = np.array(results)
             print(results.shape)
             results_in = nms.nms(results, 0.3)
+            map_results.extend(results_in)
             print(results_in)
             results = results[results_in, :]
             print(results.shape)
             # img_ori = img_path.split('/')[-1]
             # print('ori/' + img_ori)
-#             img = cv2.imread('ori/' + img_ori)
-            img = cv2.imread(img_path)
-            print(img.shape)
+            #             img = cv2.imread('ori/' + img_ori)
+            # img = cv2.imread(img_path)
+            # print(img.shape)
 
-            for item in results:
-                x, y, x1, y1 = item[0: 4]
-                cv2.rectangle(img, (int(x), int(y)), (int(x1), int(y1)), (0, 0, 255), 1)  # B,G,R
-            x, y, w, h = map(int, tmp[2].split(','))
-            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 1)
-            cv2.imwrite("results/%d.jpg" % num, img)
+            # for item in results:
+            #     x, y, x1, y1 = item[0: 4]
+            #     cv2.rectangle(img, (int(x), int(y)), (int(x1), int(y1)), (0, 0, 255), 1)  # B,G,R
+            # x, y, w, h = map(int, tmp[2].split(','))
+            # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 1)
+            # cv2.imwrite("results/%d.jpg" % num, img)
 
         except Exception as e:
             traceback.print_exc()
-
+    print(np.array(map_results).shape)
