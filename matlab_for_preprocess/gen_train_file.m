@@ -60,11 +60,12 @@ for k = 1 : length(mFiles)
     img(:,:,1) = uint8(image_h);
     img(:,:,2) = uint8(image_h);
     img(:,:,3) = uint8(image_h);
-    bw = bwlabel(mask(:,:,1), 8);
+    
     subplot(1,2,1)
     imshow(img);
     subplot(1,2,2)
     imshow(mask);
+    bw = bwlabel(mask(:,:,1), 8);
     region_count = max(max(bw));
     bb = regionprops(bw, 'BoundingBox');
     bb = [bb.BoundingBox];

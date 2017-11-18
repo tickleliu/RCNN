@@ -11,6 +11,7 @@ output/
 *.rar
 *.zip
 *.npy
+*.xml
 output/
 output_RCNN/
 pre_train_model/
