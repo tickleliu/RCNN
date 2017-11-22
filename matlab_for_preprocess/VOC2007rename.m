@@ -11,9 +11,9 @@
 clc;
 clear;
 
-maindir='I:\RCNN\matlab_for_preprocess\image\';
-maskdir = 'I:\RCNN\matlab_for_preprocess\mask\';
-output = './output.txt';
+maindir='D:\RCNN\matlab_for_preprocess\VOC2007\images\';
+maskdir = 'D:\RCNN\matlab_for_preprocess\VOC2007\masks\';
+output = 'VOC2007/output.txt';
 output_file = fopen(output, 'w');
 name_long=6; %图片名字的长度，如000123.jpg为6,最多9位,可修改
 num_begin=1; %图像命名开始的数字如000123.jpg开始的话就是123
@@ -32,19 +32,22 @@ for i = 1:length(subdir)
                 subplot(2,1,1)
                 imshow(img);
                 subplot(2,1,2)
+                
                 imshow(mask);
-                
-                
-                
-                str=num2str(num_begin,'%09d');
-                newname=strcat(str,'.jpg');
-                newname=newname(end-(name_long+3):end);
-                system(['rename ' [maindir,subdir(i).name,'\',subsubdir(j).name] ' ' newname]);
-
                 bw = bwlabel(mask(:,:,1), 8);
                 region_count = max(max(bw));
                 bb_ = regionprops(bw, 'BoundingBox');
-                bb_ = [bb_.BoundingBox];
+                bb_ = [bb_.BoundingBox]
+                if sum(find(bb_ < 5)) ~= 0
+                    filename
+                end
+                           
+                str=num2str(num_begin,'%09d');
+                newname=strcat(str,'.jpg');
+                newname=newname(end-(name_long+3):end);
+                system(['move ' [maindir,subdir(i).name,'\',subsubdir(j).name] ' VOC2007\JPEGImages\' newname]);
+
+                
                 fprintf(output_file, "%s %s %d %d %d %d\n", newname,...
             'mass', floor(bb_(1)) + 1, floor(bb_(2)) + 1, bb_(3), bb_(4));
                 num_begin=num_begin+1;

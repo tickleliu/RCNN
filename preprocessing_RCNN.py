@@ -68,7 +68,7 @@ def clip_pic(img, rect):
 
 
 # Read in data and save data for Alexnet
-def load_train_proposals(datafile, num_clss, save_path, threshold=0.3, is_svm=False, save=False):
+def load_train_proposals(datafile, num_clss, save_path, threshold=0.6, is_svm=False, save=False):
     fr = open(datafile, 'r')
     train_list = fr.readlines()
     # random.shuffle(train_list)
@@ -90,16 +90,16 @@ def load_train_proposals(datafile, num_clss, save_path, threshold=0.3, is_svm=Fa
         img = np.array(img)
         img = np.transpose(img, [1, 2, 0])
         img_lbl, regions = selectivesearch.selective_search(
-                               img, scale=1, sigma=0.9, min_size=80)
+                               img, scale=0.2, sigma=0.8, min_size=10)
         candidates = set()
         for r in regions:
             # excluding same rectangle (with different segments)
             if r['rect'] in candidates:
                 continue
             # excluding small regions
-            if r['size'] < 500:
+            if r['size'] < 300:
                 continue
-            if (r['rect'][2] * r['rect'][3]) < 1000:
+            if (r['rect'][2] * r['rect'][3]) < 400:
                 continue
             # resize to 227 * 227 for input
             proposal_img, proposal_vertice = clip_pic(img, r['rect'])
@@ -124,25 +124,24 @@ def load_train_proposals(datafile, num_clss, save_path, threshold=0.3, is_svm=Fa
             # labels, let 0 represent default class, which is background
             index = int(tmp[1])
             if is_svm:
-                # if iou_val < threshold:
                 if iou_val < 0.3:
-#                     labels.append(0)
                     image0s.append(img_float)
                     label0s.append(0)
                 else:
-                    labels.append(index)
-                    images.append(img_float)
+                    if iou_val > threshold:
+                        labels.append(index)
+                        images.append(img_float)
             else:
                 label = np.zeros(num_clss + 1)
-                # if iou_val < threshold:
                 if iou_val < 0.3:
                     label[0] = 1
                     image0s.append(img_float)
                     label0s.append(label)
                 else:
-                    label[index] = 1
-                    labels.append(label)
-                    images.append(img_float)
+                    if iou_val > threshold:
+                        label[index] = 1
+                        labels.append(label)
+                        images.append(img_float)
         label_index = np.random.randint(len(label0s), size = len(labels) * 2)
         print('bg %d, obj %d, samp %d'%(len(label0s), len(labels), len(label_index)))
         for index in label_index:
@@ -169,8 +168,8 @@ def load_from_npy(data_set):
     return images, labels
 
 def calcIOU(rect1, rect2):  
-    one_x, one_y, one_w, one_h = rect1;
-    two_x, two_y, two_w, two_h = rect2;
+    one_x, one_y, one_w, one_h = rect1
+    two_x, two_y, two_w, two_h = rect2
     if((abs(one_x - two_x) < ((one_w + two_w) / 2.0)) and (abs(one_y - two_y) < ((one_h + two_h) / 2.0))):  
         lu_x_inter = max((one_x - (one_w / 2.0)), (two_x - (two_w / 2.0)))  
         lu_y_inter = min((one_y + (one_h / 2.0)), (two_y + (two_h / 2.0)))  

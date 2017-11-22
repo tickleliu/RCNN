@@ -23,7 +23,7 @@ import tools
 
 
 # Read in data and save data for Alexnet
-def load_train_proposals(datafile, num_clss, save_path, threshold=0.3, save=False):
+def load_train_proposals(datafile, num_clss, save_path, threshold=0.6, save=False):
     fr = open(datafile, 'r')
     train_list = fr.readlines()
     # random.shuffle(train_list)
@@ -47,16 +47,16 @@ def load_train_proposals(datafile, num_clss, save_path, threshold=0.3, save=Fals
         img = np.array(img)
         img = np.transpose(img, [1, 2, 0])
         img_lbl, regions = selectivesearch.selective_search(
-            img, scale=1, sigma=0.9, min_size=80)
+            img, scale=0.2, sigma=0.9, min_size=10)
         candidates = set()
         for r in regions:
             # excluding same rectangle (with different segments)
             if r['rect'] in candidates:
                 continue
             # excluding small regions
-            if r['size'] < 500:
+            if r['size'] < 300:
                 continue
-            if (r['rect'][2] * r['rect'][3]) < 1000:
+            if (r['rect'][2] * r['rect'][3]) < 400:
                 continue
             # resize to 227 * 227 for input
             proposal_img, proposal_vertice = preprocessing_RCNN.clip_pic(img, r['rect'])

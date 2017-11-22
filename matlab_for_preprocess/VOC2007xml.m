@@ -12,9 +12,9 @@
 clc;
 clear;
 %注意修改下面四个变量
-imgpath='image\mass\';%图像存放文件夹
-txtpath='output.txt';%txt文件
-xmlpath_new='Annotations/';%修改后的xml保存文件夹
+imgpath='VOC2007\JPEGImages\';%图像存放文件夹
+txtpath='VOC2007\output.txt';%txt文件
+xmlpath_new='VOC2007\Annotations/';%修改后的xml保存文件夹
 foldername='VOC2007';%xml的folder字段名
 
 
@@ -26,9 +26,13 @@ while ~feof(fidin)
     str = regexp(tline, ' ','split')
     filepath=[imgpath,str{1}];
     img=imread(filepath);
+    filepath
+    [str2double(str{3}),str2double(str{4}),abs(str2double(str{5})),abs(str2double(str{6}))]
     [h,w,d]=size(img);
     imshow(img);
     %       rectangle('Position',[str2double(str{3}),str2double(str{4}),abs(str2double(str{5})-str2double(str{3})),abs(str2double(str{6})-str2double(str{4}))],'LineWidth',4,'EdgeColor','r');
+    
+    
     rectangle('Position',[str2double(str{3}),str2double(str{4}),abs(str2double(str{5})),abs(str2double(str{6}))],'LineWidth',4,'EdgeColor','r');
     pause(0.1);
     

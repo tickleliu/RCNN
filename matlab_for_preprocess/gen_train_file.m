@@ -1,10 +1,10 @@
 close all; clear all; clc;
 %生成训练列表
 train_file_name = '../train_list.txt';
-fine_tune_list_name = '../fine_tune_list.txt';
+fine_tune_list_name = '../output.txt';
 
-image_path = 'image/';
-mask_path = 'mask/';
+image_path = 'image&mask_delete_the_border/images/';
+mask_path = 'image&mask_delete_the_border/masks/';
 
 train_path = '../train/';
 train_path1 = 'train/';
@@ -56,10 +56,11 @@ for k = 1 : length(mFiles)
 
     
     image_g = (img(:,:,1)+img(:,:,2)+img(:,:,3)) / 3;
-    image_h = histrogram(image_g);
-    img(:,:,1) = uint8(image_h);
-    img(:,:,2) = uint8(image_h);
-    img(:,:,3) = uint8(image_h);
+%     image_h = histrogram(image_g);
+%     image_h = image_g;
+%     img(:,:,1) = uint8(image_h);
+%     img(:,:,2) = uint8(image_h);
+%     img(:,:,3) = uint8(image_h);
     
     subplot(1,2,1)
     imshow(img);

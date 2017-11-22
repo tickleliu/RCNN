@@ -30,7 +30,7 @@ def generate_single_svm_train(train_file):
     save_path = train_file.rsplit('.', 1)[0].strip()
     if len(os.listdir(save_path)) == 0:
         print("reading %s's svm dataset" % train_file.split('\\')[-1])
-        prep.load_train_proposals(train_file, 2, save_path, threshold=0.3, is_svm=True, save=True)
+        prep.load_train_proposals(train_file, 2, save_path, threshold=0.6, is_svm=True, save=True)
     print("restoring svm dataset")
     images, labels = prep.load_from_npy(save_path)
 

@@ -8,6 +8,7 @@ FINE_TUNE_MODEL_PATH = os.path.join(FINE_TUNE_MODEL, 'fine_tune_model_save.model
 TRAIN_LIST = './train_list.txt'
 FINE_TUNE_LIST = './fine_tune_list.txt'
 FINE_TUNE_DATA = './data_set'
+TEST_LIST = './test_list.txt'
 TRAIN_SVM = './svm_train'
 TRAIN_SVR = './svr_train'
 RESULT= './result'

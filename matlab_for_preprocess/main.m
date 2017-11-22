@@ -1,10 +1,12 @@
+%% 原始图像的预处理，切除图像外部边框，修复图像内部的人工标注像素
+%  获得图像后首先运行这个
 close all;
 clear all;
 clc;
 
-basepath = '8.7-8.28\';
-dirpath = ['C:\Users\lml\Desktop\超声图片\', basepath];
-maskdirpath = ['C:\Users\lml\Desktop\mask\mask\255mask', basepath];
+basepath = '7.1\';
+dirpath = ['D:\RCNN\matlab_for_preprocess\7.1\image\'];
+maskdirpath = ['D:\RCNN\matlab_for_preprocess\7.1\mask7.1\'];
 [ mFiles] = RangTraversal( dirpath, '.jpg' );
 
 for k = 1 : length(mFiles)
@@ -17,22 +19,22 @@ for k = 1 : length(mFiles)
     [x1, y1, x2, y2] = delete_border(img);
     img = double(img(y1:y2, x1:x2,:));
     
-%     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     %% cut the mask file
-%     maskfilenames = regexp(filename, '[.]', 'split');
-%     maskfilename  = [maskdirpath, 'mask', cell2mat(maskfilenames(1)), '.bmp'];
-%     smaskfilename  = [basepath, '/mask/', cell2mat(maskfilenames(1)), '.bmp'];
-%     if ~exist(maskfilename, 'file')
-%         continue
-%     end
-%     mask_img = imread(maskfilename); 
-%     mask_img = mask_img(y1:y2, x1:x2,:);   
-%     subplot(1,2,1);
-%     image(uint8(img));
-%     subplot(1,2,2);
-%     image(mask_img);
-%     imwrite(uint8(mask_img), smaskfilename);
-%     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% cut the mask file
+    maskfilenames = regexp(filename, '[.]', 'split');
+    maskfilename  = [maskdirpath, 'mask', cell2mat(maskfilenames(1)), '.bmp'];
+    smaskfilename  = [basepath, '/mask/', cell2mat(maskfilenames(1)), '.bmp'];
+    if ~exist(maskfilename, 'file')
+        continue
+    end
+    mask_img = imread(maskfilename); 
+    mask_img = mask_img(y1:y2, x1:x2,:);   
+    subplot(1,2,1);
+    image(uint8(img));
+    subplot(1,2,2);
+    image(mask_img);
+    imwrite(uint8(mask_img), smaskfilename);
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     img_ori = img;
     image(uint8(img));

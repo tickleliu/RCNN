@@ -5,11 +5,13 @@ img_g = img(:,:,1) + img(:,:,2) + img(:,:,3);
 img_g = img_g / 3;
 sz = size(img_g);
 paddingh = round(sz(1) * 0.15);
-paddingw = round(sz(2) * 0.1);
+paddingw = round(sz(2) * 0.15);
+
 img_g = img_g(paddingh:end,paddingw:end - paddingw);
 
-e = edge(img_g, 'canny', [0.02]);
-[x1, y1, x2, y2] = vot_edge(e, sz * 0.4);
+e = edge(img_g, 'canny', [0.025]);
+image(e * 10);
+[x1, y1, x2, y2] = vot_edge(e, sz * 0.5);
 % subplot(1,2,1)
 % image(e * 10)
 % subplot(1,2,2)

@@ -4,11 +4,11 @@
 %上面所占百分比可根据自己的数据集修改，如果数据集比较少，test和val可少一些
 %%
 %注意修改下面两个路径
-xmlfilepath='.\Annotations';
-txtsavepath='.\ImageSets\Main\';
+xmlfilepath='VOC2007\Annotations';
+txtsavepath='VOC2007\ImageSets\Main\';
 
 xmlfile=dir(xmlfilepath);
-numOfxml=length(xmlfile)-2;%减去.和..  总的数据集大小
+numOfxml=length(xmlfile)-2%减去.和..  总的数据集大小
 
 trainval=sort(randperm(numOfxml,floor(numOfxml/2)));%trainval为数据集的50%
 test=sort(setdiff(1:numOfxml,trainval));%test为剩余50%

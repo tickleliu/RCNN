@@ -117,11 +117,28 @@ def create_alexnet():
 
 
 #############################################################
-def eval(results, threshold=0.5):
-    for item in results:
-        pass
-    mAP = 0
-    return mAP
+def eval_map(rin, sample_count, threshold=0.5):
+    rin = rin[(-rin[:, 4]).argsort()]
+    tp = 0
+    fp = 0
+    pr = []
+    for item in rin:
+
+        # if item[4] < 0.8:
+        #     continue
+        rect1 = item[0], item[1], item[2], item[3]
+        rect2 = item[5], item[6], item[7], item[8]
+        ov = prep.calcIOU(rect1, rect2)
+        print("over lap: %f"%ov)
+        if ov >= threshold:
+            tp = tp + 1
+            prt = tp / (tp + fp)
+            pr.append(prt)
+        else:
+            fp = fp + 1
+    print(pr)
+    mean_ap = np.sum(pr) / sample_count
+    return mean_ap
 
 
 if __name__ == '__main__':
@@ -131,33 +148,41 @@ if __name__ == '__main__':
 
     train_file_folder = config.TRAIN_SVM
     svms = []
-    for file in os.listdir(train_file_folder):
-        if file.split('_')[-1] == 'svm.pkl':
-            svms.append(joblib.load(os.path.join(train_file_folder, file)))
-
-    train_svr_file_folder = config.TRAIN_SVR
     svrxs = []
     svrys = []
     svrws = []
     svrhs = []
-    for file in os.listdir(train_svr_file_folder):
-        if file.split('_')[-1] == 'svm@x.pkl':
-            svrxs.append(joblib.load(os.path.join(train_svr_file_folder, file)))
+    for file in os.listdir(train_file_folder):
+        if file.split('_')[-1] == 'svm.pkl':
+            svms.append(joblib.load(os.path.join(train_file_folder, file)))
+            svrxs.append(joblib.load(os.path.join(train_file_folder, file)))
+            svrys.append(joblib.load(os.path.join(train_file_folder, file)))
+            svrws.append(joblib.load(os.path.join(train_file_folder, file)))
+            svrhs.append(joblib.load(os.path.join(train_file_folder, file)))
 
-        if file.split('_')[-1] == 'svm@y.pkl':
-            svrys.append(joblib.load(os.path.join(train_svr_file_folder, file)))
+    # train_svr_file_folder = config.TRAIN_SVR
+    # for file in os.listdir(train_svr_file_folder):
+    #     if file.split('_')[-1] == 'svm@x.pkl':
+    #         svrxs.append(joblib.load(os.path.join(train_svr_file_folder, file)))
+    #
+    #     if file.split('_')[-1] == 'svm@y.pkl':
+    #         svrys.append(joblib.load(os.path.join(train_svr_file_folder, file)))
+    #
+    #     if file.split('_')[-1] == 'svm@w.pkl':
+    #         svrws.append(joblib.load(os.path.join(train_svr_file_folder, file)))
+    #
+    #     if file.split('_')[-1] == 'svm@h.pkl':
+    #         svrhs.append(joblib.load(os.path.join(train_svr_file_folder, file)))
 
-        if file.split('_')[-1] == 'svm@w.pkl':
-            svrws.append(joblib.load(os.path.join(train_svr_file_folder, file)))
-
-        if file.split('_')[-1] == 'svm@h.pkl':
-            svrhs.append(joblib.load(os.path.join(train_svr_file_folder, file)))
 
     print("Done loading svms")
+
+    ###############################################################################
     # evaluate
-    fr = open(config.FINE_TUNE_LIST, 'r')
+    fr = open(config.TEST_LIST, 'r')
     train_list = fr.readlines()
     # random.shuffle(train_list)
+    print("total test sample: %d" % (len(train_list)))
     map_results = []
     for num, line in enumerate(train_list):
         try:
@@ -190,57 +215,64 @@ if __name__ == '__main__':
                 for svm, svrx, svry, svrw, svrh in zip(svms, svrxs, svrys, svrws, svrhs):
                     pred = svm.predict([f.tolist()])
                     # not background
-                    if pred[0] != 0:
+                    prob = svm.predict_proba([f.tolist()])
+                    # if pred[0] != 0:
+                    if prob[0][1] > 0.4:
                         if verts[count][2] * verts[count][3] < width * height / 3:
-                            # bouding box regression
-                            tx = svrx.predict([f.tolist()])
-                            ty = svry.predict([f.tolist()])
-                            tw = svrw.predict([f.tolist()])
-                            th = svrh.predict([f.tolist()])
 
                             verts[count] = list(verts[count])
-                            verts[count][0] = tx * verts[count][2] + verts[count][0]
-                            verts[count][1] = ty * verts[count][3] + verts[count][1]
-                            verts[count][2] = np.exp(tw) * verts[count][2]
-                            verts[count][3] = np.exp(th) * verts[count][3]
 
-                            #
+                            # bouding box regression
+                            # tx = svrx.predict([f.tolist()])
+                            # ty = svry.predict([f.tolist()])
+                            # tw = svrw.predict([f.tolist()])
+                            # th = svrh.predict([f.tolist()])
+                            # verts[count][0] = tx * verts[count][2] + verts[count][0]
+                            # verts[count][1] = ty * verts[count][3] + verts[count][1]
+                            # verts[count][2] = np.exp(tw) * verts[count][2]
+                            # verts[count][3] = np.exp(th) * verts[count][3]
+
+                            print(verts[count])
                             results.append(verts[count])
 
                             verts[count][2] = verts[count][0] + verts[count][2]
                             verts[count][3] = verts[count][1] + verts[count][3]
                             dict_item = {'index': count, 'rect': verts[count], 'prob': svm.predict_proba([f.tolist()])}
                             results_dict.append(dict_item)
-
                 count += 1
 
             results = []
             for item in results_dict:
                 temp = item['rect']
                 temp.append(item['prob'][0][1])
-                temp.append(ref_rect_int)
                 results.append(temp)
+
+            print(results)
 
             results = np.array(results)
             print(results.shape)
             results_in = nms.nms(results, 0.3)
-            map_results.extend(results_in)
+            # map_results.extend(results_in)
             print(results_in)
             results = results[results_in, :]
-            print(results.shape)
             # img_ori = img_path.split('/')[-1]
             # print('ori/' + img_ori)
             #             img = cv2.imread('ori/' + img_ori)
             # img = cv2.imread(img_path)
             # print(img.shape)
 
-            # for item in results:
-            #     x, y, x1, y1 = item[0: 4]
-            #     cv2.rectangle(img, (int(x), int(y)), (int(x1), int(y1)), (0, 0, 255), 1)  # B,G,R
-            # x, y, w, h = map(int, tmp[2].split(','))
+            for item in results:
+                x, y, w, h = map(int, tmp[2].split(','))
+                # item[0] = item[0].tolist()
+                map_results.append(
+                    [item[0], item[1], item[2] - item[0], item[3] - item[1], item[4], x, y, w, h])
+                # print(map_results)
+            #     cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 1)  # B,G,R
             # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 1)
             # cv2.imwrite("results/%d.jpg" % num, img)
 
         except Exception as e:
             traceback.print_exc()
+    print(map_results)
     print(np.array(map_results).shape)
+    print("mean average precision: %f"%eval_map(np.array(map_results), len(train_list)))
